@@ -1,4 +1,4 @@
-package be.everesst.socialriskdeclaration.bundling;
+package co.siteassist;
 
 import java.util.HashSet;
 import java.util.Objects;

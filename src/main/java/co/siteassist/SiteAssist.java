@@ -1,4 +1,4 @@
-package be.everesst.socialriskdeclaration.bundling;
+package co.siteassist;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -6,18 +6,25 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static java.util.concurrent.CompletableFuture.runAsync;
 
 
-public class Bfs {
+public class SiteAssist {
 
     public static final String ROOT_URL = "https://tomblomfield.com/";
-    private static final Set<String> visitedUrls = new HashSet<>();
+    private static final Set<String> visitedUrls = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private static final Map<String, LinkNode> linksMap = new LinkedHashMap<>();
-
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(100);
 
     public static void main(String[] args) {
         long startTime = System.currentTimeMillis();
         crawl(new LinkNode(ROOT_URL));
+        executorService.shutdown();
         long endTime = System.currentTimeMillis();
         double executionTimeInSeconds = (endTime - startTime) / 1000.0; // Convert to seconds
         System.out.println("Execution Time (in seconds): " + executionTimeInSeconds);
@@ -34,14 +41,22 @@ public class Bfs {
             if (!visitedUrls.contains(currentUrl)) {
                 visitedUrls.add(currentUrl);
                 try {
-                    Document document = Jsoup.connect(currentUrl).get();
-                    Elements links = document.select("a[href]");
-                    List<String> linksOfTheCurrentPage = getLinksOfTheCurrentPage(currentUrl, links);
-                    linksOfTheCurrentPage.forEach(link -> addNewLinkNode(queue, currentNode, currentUrl, link));
-                } catch (IOException e) {
+                    runAsync(() -> findLinksOfThePage(queue, currentNode, currentUrl), executorService).get(); // Wait for the task to complete
+                } catch (InterruptedException | ExecutionException e) {
                     System.out.println(e.getMessage());
                 }
             }
+        }
+    }
+
+    private static void findLinksOfThePage(Queue<LinkNode> queue, LinkNode currentNode, String currentUrl) {
+        try {
+            Document document = Jsoup.connect(currentUrl).get();
+            Elements links = document.select("a[href]");
+            List<String> linksOfTheCurrentPage = getLinksOfTheCurrentPage(currentUrl, links);
+            linksOfTheCurrentPage.forEach(link -> addNewLinkNode(queue, currentNode, currentUrl, link));
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
         }
     }
 
@@ -55,13 +70,13 @@ public class Bfs {
     private static List<String> getLinksOfTheCurrentPage(String currentUrl, Elements links) {
         return links.parallelStream()
                 .map(element -> element.attr("href"))
-                .filter(Bfs::isValidLink)
+                .filter(SiteAssist::isValidLink)
                 .filter(link -> !link.equals(currentUrl))
-                .map(Bfs::transformLink)
+                .map(SiteAssist::transformToAbsoluteLink)
                 .toList();
     }
 
-    private static String transformLink(String link) {
+    private static String transformToAbsoluteLink(String link) {
         if (link.startsWith("/")) {
             return "https://tomblomfield.com" + link;
         }

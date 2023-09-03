@@ -1,4 +1,4 @@
-package be.everesst.socialriskdeclaration.bundling;
+package co.siteassist;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
