@@ -9,26 +9,22 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import static java.util.concurrent.CompletableFuture.runAsync;
+import static java.util.concurrent.Executors.newFixedThreadPool;
 
 
 public class SiteAssist {
 
-    public static final String ROOT_URL = "https://tomblomfield.com/";
+    private static final String ROOT_URL = "https://tomblomfield.com/";
     private static final Set<String> visitedUrls = Collections.newSetFromMap(new ConcurrentHashMap<>());
-    private static final Map<String, LinkNode> linksMap = new LinkedHashMap<>();
-    private static final ExecutorService executorService = Executors.newFixedThreadPool(100);
+    private static final Map<String, LinkNode> siteMap = new LinkedHashMap<>();
+    private static final ExecutorService executorService = newFixedThreadPool(10);
 
     public static void main(String[] args) {
-        long startTime = System.currentTimeMillis();
         crawl(new LinkNode(ROOT_URL));
         executorService.shutdown();
-        long endTime = System.currentTimeMillis();
-        double executionTimeInSeconds = (endTime - startTime) / 1000.0; // Convert to seconds
-        System.out.println("Execution Time (in seconds): " + executionTimeInSeconds);
-        Printer printer = new Printer(linksMap);
+        Printer printer = new Printer(siteMap);
         printer.printSiteMap();
     }
 
@@ -41,7 +37,7 @@ public class SiteAssist {
             if (!visitedUrls.contains(currentUrl)) {
                 visitedUrls.add(currentUrl);
                 try {
-                    runAsync(() -> findLinksOfThePage(queue, currentNode, currentUrl), executorService).get(); // Wait for the task to complete
+                    runAsync(() -> findLinksOfThePage(queue, currentNode, currentUrl), executorService).get();
                 } catch (InterruptedException | ExecutionException e) {
                     System.out.println(e.getMessage());
                 }
@@ -63,7 +59,7 @@ public class SiteAssist {
     private static void addNewLinkNode(Queue<LinkNode> queue, LinkNode currentNode, String currentUrl, String link) {
         LinkNode childNode = new LinkNode(link);
         currentNode.addChild(childNode);
-        linksMap.put(currentUrl, currentNode);
+        siteMap.put(currentUrl, currentNode);
         queue.add(childNode);
     }
 
