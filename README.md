@@ -18,7 +18,7 @@
 <h2>Usage</h2>
 
 <ol>
-    <li><strong>Setup:</strong> Ensure you have Java (17) and the required library (Jsoup) installed.</li>
+    <li><strong>Setup:</strong> Ensure you have Java (17) and the required libraries (Jsoup and Jackson) installed.</li>
     <li><strong>Configuration:</strong> Update the <code>baseUrl</code> variable in the <code>WebCrawler</code> class to the starting URL of the website you want to crawl.</li>
     <li><strong>Execution:</strong> Run the <code>WebCrawler</code> program to start crawling the website and generating the sitemap.
         <pre>
@@ -58,7 +58,10 @@ $ java WebCrawler
 
 <ul>
     <li>Jsoup: <a href="https://jsoup.org/">https://jsoup.org/</a></li>
-    
+       <li>Jackson (jackson-databind): Use the latest version. Add the following dependency to your project 
+        <a href="https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind">Jackson Databind</a>
+    </li>
+
 </ul>
 
 <h2>License</h2>
