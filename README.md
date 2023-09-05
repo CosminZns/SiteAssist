@@ -1,8 +1,5 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Web Crawler and Sitemap Generator README</title>
-</head>
 <body>
 
 <h1>Web Crawler and Sitemap Generator</h1>
